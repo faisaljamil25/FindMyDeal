@@ -1,61 +1,55 @@
 import os
-import json
 import requests
 from serpapi import GoogleSearch
 from dotenv import load_dotenv
-
+from typing import Optional
 
 load_dotenv()
-
 API_KEY = os.getenv("SERPAPI_API_KEY")
-
-# temporary return value coz None gives error in the code
-dummy_product = {
-    "link": "",
-    "price": 0.0,
-    "currency": "USD",
-    "productName": "",
-}
 
 
 def is_total_price(price_str: str, extracted_price: float) -> bool:
-    if not price_str or not extracted_price:
+    if not price_str or extracted_price is None:
         return False
-    price_value = price_str.replace("$", "").strip()
-    return price_value == str(extracted_price)
+    price = price_str.replace("$", "").strip()
+    return price == str(extracted_price)
 
 
-def remove_dollar(price: str) -> float:
-    return float(price.replace("$", "").replace(",", "").strip())
+def remove_dollar(price: str) -> Optional[float]:
+    try:
+        return float(price.replace("$", "").replace(",", "").strip())
+    except Exception:
+        return None
 
 
-def fetch_sellers(serpapi_url: str, title: str) -> dict:
+def fetch_sellers(serpapi_url: str, title: str) -> Optional[dict]:
     sellers = []
     try:
         if "api_key=" not in serpapi_url:
             serpapi_url += f"&api_key={API_KEY}"
-        resp = requests.get(serpapi_url)
+        resp = requests.get(serpapi_url, timeout=10)
         data = resp.json()
         sellers = data.get("sellers_results", {}).get("online_sellers", [])
     except Exception as e:
         print(f"Error: {e}")
-        return dummy_product
+        return None
 
     for seller in sellers:
         total_price = seller.get("total_price")
-        if total_price:
+        if total_price and not total_price.endswith("/mo"):
             final_price = remove_dollar(total_price)
-            return {
-                "link": seller.get("direct_link", ""),
-                "price": final_price,
-                "currency": "USD",
-                "productName": title,
-            }
+            if final_price:
+                return {
+                    "link": seller.get("direct_link", ""),
+                    "price": final_price,
+                    "currency": "USD",
+                    "productName": title,
+                }
 
-    return dummy_product
+    return None
 
 
-def fetch_sellers_from_id(product_id: str, location: str, title: str) -> dict:
+def fetch_sellers_from_id(product_id: str, location: str, title: str) -> Optional[dict]:
     url = (
         f"https://serpapi.com/search.json"
         f"?engine=google_product&product_id={product_id}&location={location}&api_key={API_KEY}"
@@ -63,7 +57,7 @@ def fetch_sellers_from_id(product_id: str, location: str, title: str) -> dict:
     return fetch_sellers(url, title)
 
 
-def fetch(query: str, location: str):
+def fetch(query: str, location: str) -> list:
     params = {
         "engine": "google_shopping",
         "q": query,
@@ -71,8 +65,13 @@ def fetch(query: str, location: str):
         "api_key": API_KEY,
     }
 
-    search = GoogleSearch(params)
-    results = search.get_dict()
+    try:
+        search = GoogleSearch(params)
+        results = search.get_dict()
+    except Exception as e:
+        print(f"Error: {e}")
+        return []
+
     shopping_results = results.get("shopping_results", [])
 
     parsed_results = []
@@ -108,6 +107,4 @@ def fetch(query: str, location: str):
             )
 
     sorted_results = sorted(parsed_results, key=lambda x: x["price"])
-    with open("result.json", "w") as f:
-        json.dump(sorted_results, f, indent=2)
-    return
+    return sorted_results
