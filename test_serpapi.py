@@ -2,8 +2,11 @@ from serpapi import GoogleSearch
 import os
 import json
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
+
+API_KEY = os.getenv("SERP_API_KEY")
 
 
 def test_serpapi(query: str, location: str):
@@ -11,7 +14,7 @@ def test_serpapi(query: str, location: str):
         "engine": "google_shopping",
         "q": query,
         "location": location,
-        "api_key": os.getenv("SERP_API_KEY"),
+        "api_key": API_KEY,
     }
 
     search = GoogleSearch(params)
@@ -45,9 +48,9 @@ def parse_and_sort_results():
             continue
 
         title = item.get("title")
-        link = item.get("product_link")
+        link = fetch_link(item)
 
-        if not extracted_price or not title:
+        if not extracted_price or not title or not link:
             continue
 
         parsed_results.append(
@@ -72,6 +75,25 @@ def is_installment(price_str: str, extracted_price: float) -> bool:
         return False
     price_value = price_str.replace("$", "").strip()
     return price_value != str(extracted_price)
+
+
+def fetch_link(item: dict) -> str:
+    product_link = item.get("product_link")
+    if product_link and product_link.startswith(
+        "https://www.google.com/shopping/product"
+    ):
+        serpapi_api_url = item.get("serpapi_product_api")
+        if serpapi_api_url:
+            serpapi_api_url += f"&api_key={API_KEY}"
+            try:
+                resp = requests.get(serpapi_api_url)
+                data = resp.json()
+                link = data["sellers_results"]["online_sellers"][0]["direct_link"]
+                if link:
+                    return link
+            except Exception as e:
+                print(f"Error resolving link: {e}")
+    return product_link or ""
 
 
 parse_and_sort_results()
