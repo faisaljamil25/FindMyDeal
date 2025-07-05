@@ -44,7 +44,7 @@ def parse_and_sort_results():
         price = item.get("price")
         extracted_price = item.get("extracted_price")
 
-        if is_installment(price, extracted_price):
+        if not is_total_price(price, extracted_price):
             continue
 
         title = item.get("title")
@@ -70,11 +70,11 @@ def parse_and_sort_results():
     return
 
 
-def is_installment(price_str: str, extracted_price: float) -> bool:
+def is_total_price(price_str: str, extracted_price: float) -> bool:
     if not price_str or not extracted_price:
         return False
     price_value = price_str.replace("$", "").strip()
-    return price_value != str(extracted_price)
+    return price_value == str(extracted_price)
 
 
 def fetch_link(item: dict) -> str:
