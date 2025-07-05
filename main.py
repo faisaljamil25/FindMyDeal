@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from serpapi_parser import fetch
+
 
 app = FastAPI()
 
@@ -10,12 +12,6 @@ class Request(BaseModel):
 
 
 @app.post("/find-deal")
-def find_deal(request: Request):
-    return [
-        {
-            "link": "https://apple.com/iphone16",
-            "price": "999",
-            "currency": "USD",
-            "productName": "Apple iPhone 16 Pro",
-        }
-    ]
+def find_deal(req: Request):
+    results = fetch(req.query, req.country)
+    return results
