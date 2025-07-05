@@ -8,13 +8,6 @@ load_dotenv()
 API_KEY = os.getenv("SERPAPI_API_KEY")
 
 
-def is_total_price(price_str: str, extracted_price: float) -> bool:
-    if not price_str or extracted_price is None:
-        return False
-    price = price_str.replace("$", "").strip()
-    return price == str(extracted_price)
-
-
 def remove_dollar(price: str) -> Optional[float]:
     try:
         return float(price.replace("$", "").replace(",", "").strip())
@@ -72,7 +65,9 @@ def fetch(query: str, location: str) -> list:
         print(f"Error: {e}")
         return []
 
-    shopping_results = results.get("shopping_results", [])
+    shopping_results = sorted(
+        results.get("shopping_results", []), key=lambda x: x.get("position", 999)
+    )[:15]
 
     parsed_results = []
 
@@ -96,7 +91,7 @@ def fetch(query: str, location: str) -> list:
             if result:
                 parsed_results.append(result)
 
-        elif is_total_price(price_str, extracted_price):
+        elif not price_str.endswith("/mo"):
             parsed_results.append(
                 {
                     "link": product_link,
