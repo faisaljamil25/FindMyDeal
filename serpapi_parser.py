@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 from serpapi import GoogleSearch
@@ -42,19 +43,41 @@ def fetch_sellers(serpapi_url: str, title: str) -> Optional[dict]:
     return None
 
 
-def fetch_sellers_from_id(product_id: str, location: str, title: str) -> Optional[dict]:
+def fetch_sellers_from_id(
+    product_id: str, country_code: str, google_domain: str, title: str
+) -> Optional[dict]:
     url = (
         f"https://serpapi.com/search.json"
-        f"?engine=google_product&product_id={product_id}&location={location}&api_key={API_KEY}"
+        f"?engine=google_product&product_id={product_id}&gl={country_code}&google_domain={google_domain}&hl=en&api_key={API_KEY}"
     )
     return fetch_sellers(url, title)
 
 
-def fetch(query: str, location: str) -> list:
+def fetch(query: str, country_code: str) -> list:
+    if not API_KEY:
+        print(
+            "API key is not set. Please set the SERPAPI_API_KEY environment variable."
+        )
+        return []
+
+    if not query or not country_code:
+        print("Query and country code must be provided.")
+        return []
+
+    with open("domains.json", "r") as f:
+        domains = json.load(f)
+
+    google_domain = domains.get(country_code.lower())
+    if not google_domain:
+        print(f"No domain found for country code: {country_code}")
+        return []
+
     params = {
         "engine": "google_shopping",
         "q": query,
-        "location": location,
+        "gl": country_code.lower(),
+        "hl": "en",
+        "google_domain": google_domain,
         "api_key": API_KEY,
     }
 
@@ -86,7 +109,9 @@ def fetch(query: str, location: str) -> list:
             if serpapi_product_api:
                 result = fetch_sellers(serpapi_product_api, title)
             elif product_id:
-                result = fetch_sellers_from_id(product_id, location, title)
+                result = fetch_sellers_from_id(
+                    product_id, country_code, google_domain, title
+                )
 
             if result:
                 parsed_results.append(result)

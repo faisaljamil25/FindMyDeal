@@ -7,11 +7,11 @@ app = FastAPI()
 
 
 class Request(BaseModel):
-    country: str
+    country_code: str
     query: str
 
 
 @app.post("/find-deal")
 def find_deal(req: Request):
-    results = fetch(req.query, req.country)
+    results = fetch(req.query, req.country_code)
     return results

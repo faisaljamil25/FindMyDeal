@@ -208,3 +208,6 @@ __marimo__/
 
 # json files
 *.json
+
+# don't ignore domains.json
+!domains.json
