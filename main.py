@@ -7,11 +7,16 @@ app = FastAPI()
 
 
 class Request(BaseModel):
-    country_code: str
+    country: str
     query: str
 
 
-@app.post("/find-deal")
+@app.post("/")
 def find_deal(req: Request):
-    results = fetch(req.query, req.country_code)
+    results = fetch(req.query, req.country)
     return results
+
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to the FindMyDeal API. Use POST / to find deals."}
