@@ -48,6 +48,10 @@ curl -X POST "http://localhost:8000/" \
 python test_serpapi_parser.py
 ```
 
+## Example Output
+
+![Example API Response](output.png)
+
 ## Features
 
 - Smart product relevance filtering
