@@ -7,6 +7,14 @@ API to find the best deals for products across different countries with smart re
 - Python 3.10+
 - SerpAPI account and API key
 
+## Get Started
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/FindMyDeal.git
+   cd FindMyDeal
+   ```
+
 ## Setup
 
 1. **Install dependencies:**
