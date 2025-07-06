@@ -8,6 +8,7 @@ from utils import get_currency_from_symbol, get_google_domain, parse_price
 
 load_dotenv()
 API_KEY = os.getenv("SERPAPI_API_KEY")
+MAX_ITEMS = int(os.getenv("MAX_SHOPPING_RESULTS", 10))
 
 
 def fetch_sellers(serpapi_url: str, title: str) -> dict | None:
@@ -19,7 +20,7 @@ def fetch_sellers(serpapi_url: str, title: str) -> dict | None:
         data = resp.json()
         sellers = data.get("sellers_results", {}).get("online_sellers", [])
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"[SerpAPI Seller Fetch] Error: {e}")
         return None
 
     for seller in sellers:
@@ -77,12 +78,12 @@ def fetch(query: str, country_code: str) -> list:
         search = GoogleSearch(params)
         results = search.get_dict()
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"[SerpAPI Main Search] Error: {e}")
         return []
 
     shopping_results = sorted(
         results.get("shopping_results", []), key=lambda x: x.get("position", 999)
-    )[:15]
+    )[:MAX_ITEMS]
 
     parsed_results = []
 
