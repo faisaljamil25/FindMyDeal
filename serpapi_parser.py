@@ -133,7 +133,7 @@ def fetch(query: str, country_code: str) -> list:
             continue
 
         if product_link and product_link.startswith(
-            "https://www.google.com/shopping/product"
+            f"https://www.{google_domain}/shopping/product"
         ):
             result = None
             if serpapi_product_api:
