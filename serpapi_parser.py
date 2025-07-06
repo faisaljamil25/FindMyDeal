@@ -129,7 +129,7 @@ def fetch(query: str, country_code: str) -> list:
         serpapi_product_api = item.get("serpapi_product_api")
         product_id = item.get("product_id")
 
-        if not title or not is_relevant_product(title):
+        if not title or not is_relevant_product(title, query):
             continue
 
         if product_link and product_link.startswith(
@@ -155,7 +155,7 @@ def fetch(query: str, country_code: str) -> list:
             parsed_results.append(
                 {
                     "link": product_link,
-                    "price": extracted_price,
+                    "price": float(extracted_price),
                     "currency": currency,
                     "productName": title,
                 }
@@ -163,6 +163,6 @@ def fetch(query: str, country_code: str) -> list:
 
     sorted_results = sorted(parsed_results, key=lambda x: x["price"])
 
-    filtered_results = filter_relevant_products(sorted_results, max_results=10)
+    filtered_results = filter_relevant_products(sorted_results, query, max_results=10)
 
     return filtered_results
