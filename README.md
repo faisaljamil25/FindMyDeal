@@ -40,7 +40,7 @@ uvicorn main:app --reload
 ```bash
 curl -X POST "http://localhost:8000/" \
   -H "Content-Type: application/json" \
-  -d '{"country_code": "US", "query": "iPhone 16 Pro 128GB"}'
+  -d '{"country": "US", "query": "iPhone 16 Pro, 128GB"}'
 ```
 
 **Test script:**
@@ -57,5 +57,6 @@ python test_serpapi_parser.py
 - Smart product relevance filtering
 - Filters out accessories and damaged items  
 - Multi-country support
-- Price sorting (lowest first)
+- Localized results with country specific pricing and stores
+- Price sorting (cheapest first)
 - Keyword matching to ensure exact product matches
