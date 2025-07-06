@@ -2,6 +2,7 @@ import os
 import requests
 from serpapi import GoogleSearch
 from dotenv import load_dotenv
+from product_relevance_filter import filter_relevant_products, is_relevant_product
 
 from utils import (
     get_currency_from_symbol,
@@ -13,7 +14,7 @@ from utils import (
 
 load_dotenv()
 API_KEY = os.getenv("SERPAPI_API_KEY")
-MAX_ITEMS = int(os.getenv("MAX_SHOPPING_RESULTS", 10))
+MAX_ITEMS = int(os.getenv("MAX_SHOPPING_RESULTS", 30))
 
 
 def fetch_sellers(serpapi_url: str, title: str) -> dict | None:
@@ -128,6 +129,9 @@ def fetch(query: str, country_code: str) -> list:
         serpapi_product_api = item.get("serpapi_product_api")
         product_id = item.get("product_id")
 
+        if not title or not is_relevant_product(title):
+            continue
+
         if product_link and product_link.startswith(
             "https://www.google.com/shopping/product"
         ):
@@ -142,7 +146,11 @@ def fetch(query: str, country_code: str) -> list:
             if result:
                 parsed_results.append(result)
 
-        elif not price_str.endswith("/mo") and "/month" not in price_str.lower():
+        elif (
+            price_str
+            and not price_str.endswith("/mo")
+            and "/month" not in price_str.lower()
+        ):
             currency = get_currency_from_symbol(price_str.strip()[0])
             parsed_results.append(
                 {
@@ -154,4 +162,7 @@ def fetch(query: str, country_code: str) -> list:
             )
 
     sorted_results = sorted(parsed_results, key=lambda x: x["price"])
-    return sorted_results
+
+    filtered_results = filter_relevant_products(sorted_results, max_results=10)
+
+    return filtered_results
