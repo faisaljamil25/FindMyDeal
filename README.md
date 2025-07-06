@@ -56,9 +56,11 @@ curl -X POST "http://localhost:8000/" \
 python test_serpapi_parser.py
 ```
 
-## Example Output
+## Example Outputs
 
 ![Example API Response](output.png)
+
+![Example API Response](output1.png)
 
 ## Features
 
