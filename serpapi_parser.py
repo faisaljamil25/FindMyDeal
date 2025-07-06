@@ -1,22 +1,22 @@
-import json
 import os
 import requests
 from serpapi import GoogleSearch
 from dotenv import load_dotenv
-from typing import Optional
+
+from utils import get_google_domain
 
 load_dotenv()
 API_KEY = os.getenv("SERPAPI_API_KEY")
 
 
-def remove_dollar(price: str) -> Optional[float]:
+def remove_dollar(price: str) -> float | None:
     try:
         return float(price.replace("$", "").replace(",", "").strip())
     except Exception:
         return None
 
 
-def fetch_sellers(serpapi_url: str, title: str) -> Optional[dict]:
+def fetch_sellers(serpapi_url: str, title: str) -> dict | None:
     sellers = []
     try:
         if "api_key=" not in serpapi_url:
@@ -45,7 +45,7 @@ def fetch_sellers(serpapi_url: str, title: str) -> Optional[dict]:
 
 def fetch_sellers_from_id(
     product_id: str, country_code: str, google_domain: str, title: str
-) -> Optional[dict]:
+) -> dict | None:
     url = (
         f"https://serpapi.com/search.json"
         f"?engine=google_product&product_id={product_id}&gl={country_code}&google_domain={google_domain}&hl=en&api_key={API_KEY}"
@@ -64,10 +64,7 @@ def fetch(query: str, country_code: str) -> list:
         print("Query and country code must be provided.")
         return []
 
-    with open("domains.json", "r") as f:
-        domains = json.load(f)
-
-    google_domain = domains.get(country_code.lower())
+    google_domain = get_google_domain(country_code)
     if not google_domain:
         print(f"No domain found for country code: {country_code}")
         return []
