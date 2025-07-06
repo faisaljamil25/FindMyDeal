@@ -1,4 +1,5 @@
 import re
+import statistics
 
 KEYWORDS = [
     "case",
@@ -102,7 +103,10 @@ def is_relevant_product(title: str, query: str = "") -> bool:
 
 
 def filter_relevant_products(
-    products: list, query: str = "", max_results: int = 10
+    products: list,
+    query: str = "",
+    max_results: int = 10,
+    price_threshold: float = 0.5,
 ) -> list:
     relevant_products = []
 
@@ -112,5 +116,18 @@ def filter_relevant_products(
             relevant_products.append(product)
 
     relevant_products.sort(key=lambda x: x.get("price", float("inf")))
+
+    if len(relevant_products) >= 3:
+        prices = [p.get("price", 0) for p in relevant_products if p.get("price", 0) > 0]
+
+        if len(prices) >= 3:
+            median_price = statistics.median(prices)
+            min_price = median_price * price_threshold
+
+            relevant_products = [
+                product
+                for product in relevant_products
+                if product.get("price", 0) >= min_price
+            ]
 
     return relevant_products[:max_results]

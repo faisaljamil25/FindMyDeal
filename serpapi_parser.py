@@ -163,6 +163,8 @@ def fetch(query: str, country_code: str) -> list:
 
     sorted_results = sorted(parsed_results, key=lambda x: x["price"])
 
-    filtered_results = filter_relevant_products(sorted_results, query, max_results=10)
+    final_results = filter_relevant_products(
+        sorted_results, query, max_results=10, price_threshold=0.5
+    )
 
-    return filtered_results
+    return final_results
