@@ -22,3 +22,10 @@ def parse_price(price: str) -> tuple[str, float] | None:
         return (currency, numeric)
     except Exception:
         return None
+
+
+def get_price(val: str) -> float:
+    if not val:
+        return 0.0
+    parsed = parse_price(val)
+    return parsed[1] if parsed and parsed[1] is not None else 0.0

@@ -3,7 +3,12 @@ import requests
 from serpapi import GoogleSearch
 from dotenv import load_dotenv
 
-from utils import get_currency_from_symbol, get_google_domain, parse_price
+from utils import (
+    get_currency_from_symbol,
+    get_google_domain,
+    parse_price,
+    get_price,
+)
 
 
 load_dotenv()
@@ -19,22 +24,50 @@ def fetch_sellers(serpapi_url: str, title: str) -> dict | None:
         resp = requests.get(serpapi_url, timeout=10)
         data = resp.json()
         sellers = data.get("sellers_results", {}).get("online_sellers", [])
+        title = data.get("product_results", {}).get("title", title)
     except Exception as e:
         print(f"[SerpAPI Seller Fetch] Error: {e}")
         return None
 
     for seller in sellers:
-        total_price = seller.get("total_price")
-        if total_price and not total_price.endswith("/mo"):
+        base_price = seller.get("base_price")
+        if (
+            base_price
+            and not base_price.endswith("/mo")
+            and "/month" not in base_price.lower()
+        ):
+            price_currency = parse_price(base_price)
+            if price_currency:
+                currency, final_price = price_currency
+                if final_price and final_price != 0.0:
+                    return {
+                        "link": seller.get("direct_link", ""),
+                        "price": final_price,
+                        "currency": currency,
+                        "productName": title,
+                    }
+
+        additional_price = seller.get("additional_price", {})
+        taxes_str = additional_price.get("taxes", "")
+        shipping_str = additional_price.get("shipping", "")
+        total_taxes = get_price(taxes_str)
+        total_shipping = get_price(shipping_str)
+        total_price = seller.get("total_price", "")
+        if (
+            total_price
+            and not total_price.endswith("/mo")
+            and "/month" not in total_price.lower()
+        ):
             price_currency = parse_price(total_price)
             if price_currency:
                 currency, final_price = price_currency
-                return {
-                    "link": seller.get("direct_link", ""),
-                    "price": final_price,
-                    "currency": currency,
-                    "productName": title,
-                }
+                if final_price and final_price != 0.0:
+                    return {
+                        "link": seller.get("direct_link", ""),
+                        "price": final_price - (total_taxes + total_shipping),
+                        "currency": currency,
+                        "productName": title,
+                    }
 
     return None
 
@@ -109,7 +142,7 @@ def fetch(query: str, country_code: str) -> list:
             if result:
                 parsed_results.append(result)
 
-        elif not price_str.endswith("/mo"):
+        elif not price_str.endswith("/mo") and "/month" not in price_str.lower():
             currency = get_currency_from_symbol(price_str.strip()[0])
             parsed_results.append(
                 {
