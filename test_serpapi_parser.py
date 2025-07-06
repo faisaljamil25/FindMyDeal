@@ -47,7 +47,7 @@ def test_fetch(mock_requests_get, mock_get_dict):
     mock_resp.json.return_value = mock_product_detail_response
     mock_requests_get.return_value = mock_resp
 
-    results = fetch("iPhone 16 Pro", "United States")
+    results = fetch("iPhone 16 Pro", "US")
 
     print(json.dumps(results, indent=2))
 

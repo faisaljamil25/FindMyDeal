@@ -3,17 +3,11 @@ import requests
 from serpapi import GoogleSearch
 from dotenv import load_dotenv
 
-from utils import get_google_domain
+from utils import get_currency_from_symbol, get_google_domain, parse_price
+
 
 load_dotenv()
 API_KEY = os.getenv("SERPAPI_API_KEY")
-
-
-def remove_dollar(price: str) -> float | None:
-    try:
-        return float(price.replace("$", "").replace(",", "").strip())
-    except Exception:
-        return None
 
 
 def fetch_sellers(serpapi_url: str, title: str) -> dict | None:
@@ -31,12 +25,13 @@ def fetch_sellers(serpapi_url: str, title: str) -> dict | None:
     for seller in sellers:
         total_price = seller.get("total_price")
         if total_price and not total_price.endswith("/mo"):
-            final_price = remove_dollar(total_price)
-            if final_price:
+            price_currency = parse_price(total_price)
+            if price_currency:
+                currency, final_price = price_currency
                 return {
                     "link": seller.get("direct_link", ""),
                     "price": final_price,
-                    "currency": "USD",
+                    "currency": currency,
                     "productName": title,
                 }
 
@@ -114,11 +109,12 @@ def fetch(query: str, country_code: str) -> list:
                 parsed_results.append(result)
 
         elif not price_str.endswith("/mo"):
+            currency = get_currency_from_symbol(price_str.strip()[0])
             parsed_results.append(
                 {
                     "link": product_link,
                     "price": extracted_price,
-                    "currency": "USD",
+                    "currency": currency,
                     "productName": title,
                 }
             )

@@ -184,3 +184,26 @@ DOMAINS = {
     "vu": "google.vu",
     "ws": "google.ws",
 }
+
+CURRENCY_SYMBOL_MAP = {
+    "$": "USD",
+    "€": "EUR",
+    "£": "GBP",
+    "¥": "JPY",
+    "₹": "INR",
+    "₽": "RUB",
+    "₩": "KRW",
+    "₺": "TRY",
+    "₫": "VND",
+    "₱": "PHP",
+    "฿": "THB",
+    "₴": "UAH",
+    "₪": "ILS",
+    "₦": "NGN",
+    "₭": "LAK",
+    "₸": "KZT",
+    "៛": "KHR",
+    "₡": "CRC",
+    "₨": "LKR",
+    "₮": "MNT",
+}
