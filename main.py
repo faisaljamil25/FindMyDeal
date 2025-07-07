@@ -20,3 +20,8 @@ def find_deal(req: Request):
 @app.get("/")
 def root():
     return {"message": "Welcome to the FindMyDeal API. Use POST / to find deals."}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "FindMyDeal API"}

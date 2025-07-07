@@ -33,9 +33,25 @@ API to find the best deals for products across different countries with smart re
 
 ## Run
 
+### Option 1: Local Development
 **Start the API server:**
 ```bash
 uvicorn main:app --reload
+```
+
+### Option 2: Docker
+**Build and run with Docker:**
+```bash
+# Build the image
+docker build -t findmydeal .
+
+# Run the container
+docker run -p 8000:8000 --env-file .env findmydeal
+```
+
+**Or use Docker Compose:**
+```bash
+docker-compose up -d
 ```
 
 **API will be available at:** `http://localhost:8000`
